@@ -4,19 +4,14 @@ const regpropertySchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "usermodels",
   },
-
-  Housetype: {
+  // category: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "categoryModel",
+  // },
+  Title: {
     type: String,
   },
-
-  Area: {
-    type: String,
-  },
-
-  City: {
-    type: String,
-  },
-  Landmark: {
+  HouseType: {
     type: String,
   },
 
@@ -24,16 +19,55 @@ const regpropertySchema = mongoose.Schema({
     type: String,
   },
 
-  PlotSize: {
+  location: {
+    type: String,
+  },
+  layoutName: {
+    type: String,
+  },
+  landArea: {
     type: String,
   },
   Units: {
     type: String,
   },
-  Price: {
+
+  facing: {
     type: String,
   },
-
+  approachRoad: {
+    type: String,
+  },
+  builtArea: {
+    type: String,
+  },
+  bedRoom: {
+    type: String,
+  },
+  bathRoom: {
+    type: String,
+  },
+  floorDetails: {
+    type: String,
+  },
+  propertyStatus: {
+    type: String,
+  },
+  nearTown: {
+    type: String,
+  },
+  priceUnit: {
+    type: String,
+  },
+  facilities: {
+    type: String,
+  },
+  askPrice: {
+    type: String,
+  },
+  Description: {
+    type: String,
+  },
   propertyPic: [
     {
       type: String,
@@ -42,20 +76,15 @@ const regpropertySchema = mongoose.Schema({
 
   isPropertyPic: { type: Boolean, default: true },
 
-  Description: {
-    type: String,
-  },
-  aflag: {
-    type: Boolean,
-  },
   status: {
     type: String,
   },
-
   date: {
     type: Date,
     default: Date.now(),
   },
+  aflag: {
+    type: Boolean,
+  },
 });
-
 module.exports = mongoose.model("RegPropertymodels", regpropertySchema);

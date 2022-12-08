@@ -142,6 +142,20 @@ router.get("/allPropertiesList", async (req, res) => {
     }
   });
 });
+router.get("/allPropertiesPendingList", async (req, res) => {
+  RegPropertyModel.find({ status: "Pending" }, (err, list) => {
+    if (err) {
+      res.json({
+        msg: err,
+      });
+    } else {
+      res.json({
+        success: true,
+        properties: list,
+      });
+    }
+  });
+});
 router.put("/removeUser", async (req, res) => {
   const { userID } = req.body;
   const removeUser = await userModel.findByIdAndUpdate(userID, {
