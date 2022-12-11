@@ -12,36 +12,56 @@ router.post("/Sellproperty", async (req, res) => {
   try {
     //De-Struturing values from request body
     const {
-      userID,
-      Housetype,
+      regUser,
+      Title,
+      HouseType,
       Seller,
-      Area,
-      Landmark,
-      City,
-      Price,
-      propertyPic,
-      PlotSize,
+      location,
+      layoutName,
+      landArea,
       Units,
+      facing,
+      approachRoad,
+      builtArea,
+      bedRoom,
+      bathRoom,
+      floorDetails,
+      propertyStatus,
+      nearTown,
+      priceUnit,
+      facilities,
+      askPrice,
       Description,
+      propertyPic,
     } = req.body;
     // console.log("Response :",req.body)
     //Finding user from DB collection using unique userID
-    const user = await userModel.findOne({ _id: userID });
+    const user = await userModel.findOne({ _id: regUser });
     //Executes is user found
     if (user) {
       const queryData = {
-        regUser: userID,
-        Housetype: Housetype,
+        regUser: regUser,
+        Title: Title,
+        HouseType: HouseType,
         Seller: Seller,
-        Area: Area,
-        Landmark: Landmark,
-        City: City,
-        Price: Price,
-        propertyPic: propertyPic,
-        PlotSize: PlotSize,
+        location: location,
+        layoutName: layoutName,
+        landArea: landArea,
         Units: Units,
+        facing: facing,
+        approachRoad: approachRoad,
+        builtArea: builtArea,
+        bedRoom: bedRoom,
+        bathRoom: bathRoom,
+        floorDetails: floorDetails,
+        propertyStatus: propertyStatus,
+        nearTown: nearTown,
+        priceUnit: priceUnit,
+        facilities: facilities,
+        askPrice: askPrice,
         Description: Description,
-
+        propertyPic: propertyPic,
+        status: "Pending",
         aflag: true,
       };
       const isAlreadyRegistered = await RegPropertyModel.find({
@@ -56,10 +76,6 @@ router.post("/Sellproperty", async (req, res) => {
             success: true,
             msg: "Property Registration Sucessfull",
           });
-          const updatedUser = await userModel.findByIdAndUpdate(email, {
-            propertyStatus: status,
-            lastModified: Date.now(),
-          });
         } else {
           return res.json({ msg: "Property Registeration failed" });
         }
@@ -73,18 +89,24 @@ router.post("/Sellproperty", async (req, res) => {
 });
 router.post("/getpropertyByUserId", async (req, res) => {
   try {
-    const { userId, searchText } = req.body;
+    const { userId, searchText = "" } = req.body;
 
     const userProperty = await RegPropertyModel.find(
       {
         regUser: userId,
         $or: [
-          { Price: { $regex: "^" + searchText, $options: "i" } },
-          { Housetype: { $regex: "^" + searchText, $options: "i" } },
-          { Area: { $regex: "^" + searchText, $options: "i" } },
-          { City: { $regex: "^" + searchText, $options: "i" } },
-        ],
+          {
+            Title: { $regex: searchText, $options: "i" },
+          },
+          { askPrice: { $regex: "^" + searchText, $options: "i" } },
 
+          { landArea: { $regex: "^" + searchText, $options: "i" } },
+          { Units: { $regex: searchText, $options: "i" } },
+
+          { HouseType: { $regex: "^" + searchText, $options: "i" } },
+          { location: { $regex: "^" + searchText, $options: "i" } },
+          { facing: { $regex: "^" + searchText, $options: "i" } },
+        ],
         aflag: true,
       },
       null
@@ -94,6 +116,7 @@ router.post("/getpropertyByUserId", async (req, res) => {
       return res.json({ success: true, userProperty: userProperty });
     else return res.json({ msg: "No Property Found" });
   } catch (err) {
+    console.log(err);
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 });
@@ -124,17 +147,25 @@ router.post("/getpropertyByUserId", async (req, res) => {
 // });
 
 router.post("/properties", async (req, res) => {
-  const { searchText } = req.body;
+  const { page = 1, limit = 4, searchText } = req.body;
+  const skip = (page - 1) * limit;
   RegPropertyModel.find(
     {
       $or: [
-        { Price: { $regex: "^" + searchText, $options: "i" } },
-        { Housetype: { $regex: "^" + searchText, $options: "i" } },
-        { Area: { $regex: "^" + searchText, $options: "i" } },
-        { City: { $regex: "^" + searchText, $options: "i" } },
-        { Landmark: { $regex: "^" + searchText, $options: "i" } },
-        { Seller: { $regex: "^" + searchText, $options: "i" } },
+        {
+          Title: { $regex: searchText, $options: "i" },
+        },
+        { askPrice: { $regex: "^" + searchText, $options: "i" } },
+        { HouseType: { $regex: searchText, $options: "i" } },
+        {
+          location: { $regex: searchText, $options: "i" },
+        },
+
+        { landArea: { $regex: "^" + searchText, $options: "i" } },
+        { Units: { $regex: searchText, $options: "i" } },
       ],
+      aflag: true,
+      status: "Approved",
     },
     null,
 
@@ -149,8 +180,123 @@ router.post("/properties", async (req, res) => {
           property: list,
         });
       }
+    },
+    { limit: limit, skip: skip }
+  );
+});
+router.post("/rangeSearch", async (req, res) => {
+  const { searchFrom, searchTo } = req.body;
+  RegPropertyModel.find(
+    {
+      $and: [
+        { askPrice: { $gt: searchFrom } },
+        { askPrice: { $lt: searchTo } },
+      ],
+    },
+    (err, isUserProp) => {
+      if (err) {
+        return res.json({
+          msg: "Error Occured",
+          error: err,
+        });
+      } else if (!isUserProp) {
+        return res.json({
+          msg: "No such Property",
+        });
+      } else {
+        return res.json({
+          success: true,
+          property: isUserProp,
+        });
+      }
     }
   );
 });
 
+router.post("/update", async (req, res) => {
+  const {
+    pid,
+    regUser,
+    Title,
+    HouseType,
+    Seller,
+    location,
+    layoutName,
+    landArea,
+    Units,
+    facing,
+    approachRoad,
+    builtArea,
+    bedRoom,
+    bathRoom,
+    floorDetails,
+    propertyStatus,
+    nearTown,
+    priceUnit,
+    facilities,
+    askPrice,
+    Description,
+    propertyPic,
+    status,
+  } = req.body;
+  const queryData = {
+    regUser: regUser,
+    Title: Title,
+    HouseType: HouseType,
+    Seller: Seller,
+    location: location,
+    layoutName: layoutName,
+    landArea: landArea,
+    Units: Units,
+    facing: facing,
+    approachRoad: approachRoad,
+    builtArea: builtArea,
+    bedRoom: bedRoom,
+    bathRoom: bathRoom,
+    floorDetails: floorDetails,
+    propertyStatus: propertyStatus,
+    nearTown: nearTown,
+    priceUnit: priceUnit,
+    facilities: facilities,
+    askPrice: askPrice,
+    Description: Description,
+    propertyPic: propertyPic,
+    status: status,
+    aflag: true,
+  };
+
+  RegPropertyModel.findOneAndUpdate(
+    { _id: pid },
+    queryData,
+    (err, userProp) => {
+      if (err) {
+        return res.json({
+          msg: err,
+        });
+      } else if (userProp) {
+        RegPropertyModel.findOne({ regUser: regUser }, (err, isUserProp) => {
+          if (err) {
+            return res.json({
+              msg: "Error Occured",
+              error: err,
+            });
+          } else if (!isUserProp) {
+            return res.json({
+              msg: "You Can't Update  this Property",
+            });
+          } else {
+            isUserProp.__v = null;
+            return res.json({
+              success: true,
+              msg: "Property Updated Sucessfully",
+              userID: isUserProp.regUser,
+              PropId: isUserProp._id,
+              userProp,
+            });
+          }
+        });
+      }
+    }
+  );
+});
 module.exports = router;

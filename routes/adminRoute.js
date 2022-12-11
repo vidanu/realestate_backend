@@ -180,4 +180,15 @@ router.put("/removeProperty", async (req, res) => {
     res.json({ success: true, removeProperty });
   }
 });
+router.put("/approveProperty", async (req, res) => {
+  const { PropertyID } = req.body;
+  const approveProperty = await RegPropertyModel.findByIdAndUpdate(PropertyID, {
+    status: "Approved",
+  });
+  if (!approveProperty) {
+    res.status(404);
+  } else {
+    res.json({ success: true, approveProperty });
+  }
+});
 module.exports = router;

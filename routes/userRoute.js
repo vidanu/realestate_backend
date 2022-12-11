@@ -174,9 +174,17 @@ router.post("/propertyCount", async (req, res) => {
   RegPropertyModel.countDocuments(
     {
       $or: [
-        { Area: { $regex: "^" + searchText, $options: "i" } },
-        { Landmark: { $regex: "^" + searchText, $options: "i" } },
-        { Seller: { $regex: "^" + searchText, $options: "i" } },
+        {
+          Title: { $regex: searchText, $options: "i" },
+        },
+        { askPrice: { $regex: "^" + searchText, $options: "i" } },
+        { HouseType: { $regex: searchText, $options: "i" } },
+        {
+          location: { $regex: searchText, $options: "i" },
+        },
+
+        { landArea: { $regex: "^" + searchText, $options: "i" } },
+        { Units: { $regex: searchText, $options: "i" } },
       ],
     },
     (err, count) => {
@@ -258,6 +266,43 @@ router.put("/edit", async (req, res) => {
             userID: isUser._id,
             firstname: isUser.firstname,
             lastname: isUser.lastname,
+            email: isUser.email,
+            propertyStatus: isUser.propertyStatus,
+          });
+        }
+      });
+    }
+  });
+});
+router.put("/updatepwd", async (req, res) => {
+  const { email, newpassword } = req.body;
+  const queryData = {
+    password: newpassword,
+  };
+
+  userModel.findOneAndUpdate({ email: email }, queryData, (err, user) => {
+    if (err) {
+      return res.json({
+        msg: err,
+      });
+    } else if (user) {
+      userModel.findOne({ email: email }, (err, isUser) => {
+        if (err) {
+          return res.json({
+            msg: "Error Occured",
+            error: err,
+          });
+        } else if (!isUser) {
+          return res.json({
+            msg: "User not Found",
+          });
+        } else {
+          isUser.password = null;
+          isUser.__v = null;
+          return res.json({
+            success: true,
+            userID: isUser._id,
+            password: isUser.newpassword,
             email: isUser.email,
             propertyStatus: isUser.propertyStatus,
           });
